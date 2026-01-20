@@ -36,5 +36,6 @@ torch
 torchvision
 torchaudio
 requests
+duckduckgo-search
 
 streamlit

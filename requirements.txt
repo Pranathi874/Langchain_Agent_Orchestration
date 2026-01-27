@@ -38,5 +38,9 @@ torchvision
 torchaudio
 requests
 ddgs
+wikipedia
+wikipedia-api
 
+arxiv
+requests
 streamlit

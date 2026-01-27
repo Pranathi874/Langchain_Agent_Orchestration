@@ -1,44 +1,55 @@
 import json
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from fastapi import FastAPI
-
 from simple_agent import orchestrator
 
-# =====================================
+# =========================
 # FASTAPI APP
-# =====================================
+# =========================
 app = FastAPI(
-    title="LangChain Multi-Agent System",
-    description="Research → Summary → Email using LangChain Agents",
-    version="1.0"
+    title="Multi-Agent Research API (Groq + LLaMA)",
+    version="1.0.0"
 )
 
-# =====================================
-# INPUT MODEL
-# =====================================
+# =========================
+# REQUEST MODEL
+# =========================
 class TopicInput(BaseModel):
     topic: str
 
-# =====================================
-# ROOT ENDPOINT (FIXES 404 ISSUE)
-# =====================================
+# =========================
+# HEALTH CHECK
+# =========================
 @app.get("/")
 def home():
     return {
-        "message": "LangChain Multi-Agent API is running successfully",
-        "use_endpoint": "/run",
-        "method": "POST"
+        "status": "API running",
+        "engine": "Groq + LLaMA",
+        "agents": ["Researcher", "Critic", "Fact Checker", "Writer"]
     }
 
-# =====================================
-# MAIN AGENT ENDPOINT
-# =====================================
+# =========================
+# MAIN ENDPOINT
+# =========================
 @app.post("/run")
 def run_agents(data: TopicInput):
-    result = orchestrator(data.topic)
 
-    # Save output for automation
-    with open("agent_output.json", "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=4)
+    if not data.topic.strip():
+        raise HTTPException(status_code=400, detail="Topic cannot be empty")
+
+    try:
+        result = orchestrator(data.topic)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent execution failed: {str(e)}"
+        )
+
+    # Save output for audit / debugging
+    try:
+        with open("agent_output.json", "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=4, ensure_ascii=False)
+    except Exception:
+        pass  # Non-critical
 
     return result

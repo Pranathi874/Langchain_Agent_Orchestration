@@ -43,7 +43,7 @@ st.set_page_config(
 # =========================
 # HEADER
 # =========================
-st.title("🤖 Multi-Agent Research System (Groq + LLaMA)")
+st.title("🤖 Multi-Agent Research System")
 st.caption("Fast • Intelligent • Multi-Agent Research Engine")
 
 # =========================

@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.tools import Tool
+
+from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun, ArxivQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper, ArxivAPIWrapper
 from ddgs import DDGS
 
 # =========================
@@ -25,7 +29,52 @@ llm = ChatGroq(
 )
 
 # =========================
-# PROMPTS
+# TOOLS (ADDED — REQUIRED FOR AGENT)
+# =========================
+
+# 1️⃣ DuckDuckGo Web Search
+search_tool = DuckDuckGoSearchRun()
+
+# 2️⃣ Wikipedia Tool
+wiki_wrapper = WikipediaAPIWrapper(
+    top_k_results=1,
+    doc_content_chars_max=4000,
+    load_all_available_meta=True
+)
+wiki_tool = WikipediaQueryRun(api_wrapper=wiki_wrapper)
+
+# 3️⃣ ArXiv Tool
+arxiv_wrapper = ArxivAPIWrapper(
+    top_k_results=2,
+    doc_content_chars_max=2000
+)
+arxiv_tool = ArxivQueryRun(api_wrapper=arxiv_wrapper)
+
+# Toolkit (LLM + Tools = Agent concept)
+tools = [
+    Tool(
+        func=search_tool.run,
+        name="web_search",
+        description="Search the web for current events and real-time data."
+    ),
+    Tool(
+        func=wiki_tool.run,
+        name="wikipedia",
+        description="Search Wikipedia for historical and general facts."
+    ),
+    Tool(
+        func=arxiv_tool.run,
+        name="arxiv_research",
+        description=(
+            "Search for scholarly articles and research papers. Covers "
+            "Physics, Mathematics, Computer Science, Quantitative Biology, "
+            "Quantitative Finance, Statistics, Electrical Engineering, and Economics."
+        )
+    )
+]
+
+# =========================
+# PROMPTS (UNCHANGED)
 # =========================
 RESEARCH_PROMPT = PromptTemplate.from_template(
     """
@@ -76,10 +125,8 @@ Research:
 """
 )
 
-
-
 # =========================
-# CHAINS
+# CHAINS (UNCHANGED)
 # =========================
 research_chain = RESEARCH_PROMPT | llm | StrOutputParser()
 summary_chain = SUMMARY_PROMPT | llm | StrOutputParser()
@@ -104,7 +151,7 @@ def collect_sources(query: str) -> List[Dict[str, str]]:
     return sources
 
 # =========================
-# ORCHESTRATOR (FINAL)
+# ORCHESTRATOR (UNCHANGED OUTPUT)
 # =========================
 def orchestrator(topic: str) -> Dict[str, Any]:
     research = research_chain.invoke({"topic": topic})

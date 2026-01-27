@@ -4,6 +4,7 @@ langchain-core
 langchain-community
 langchain-classic
 duckduckgo-search
+langchain-groq
 faiss-cpu
 fastapi
 uvicorn

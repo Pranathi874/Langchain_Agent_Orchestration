@@ -96,6 +96,7 @@ div.stButton > button {
     font-weight: 600 !important;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
     transition: all 0.25s ease-in-out !important;
+    
 }
 
 /* Hover effect */

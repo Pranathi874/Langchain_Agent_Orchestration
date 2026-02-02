@@ -24,6 +24,7 @@ def get_place_temperature(city: str) -> dict:
         "https://api.openweathermap.org/data/2.5/weather",
         params={"appid": os.environ["OPENWEATHER_API_KEY"], "q": city , "units": "metric"},
         timeout=10
+        
     ).json()
     
     if data.get("cod") != 200:

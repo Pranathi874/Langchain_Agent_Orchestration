@@ -43,4 +43,4 @@ wikipedia-api
 
 arxiv
 requests
-streamlit
+streamlit #install all the libraries using pip install -r requirements.txt

@@ -156,9 +156,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 🔁 auto refresh every 60 seconds
-time.sleep(60)
-st.rerun()
+
 
 st.markdown("---")
 

@@ -141,14 +141,36 @@ critic_chain = CRITIC_PROMPT | llm | StrOutputParser()
 # =========================
 def collect_sources(query: str) -> List[Dict[str, str]]:
     sources = []
+    seen_urls = set()
+
+    queries = [
+        query,
+        f"{query} overview",
+        f"{query} research",
+        f"{query} analysis",
+        f"{query} latest trends"
+    ]
+
     with DDGS() as ddgs:
-        for r in ddgs.text(query, max_results=10):
-            if r.get("href"):
-                sources.append({
-                    "title": r.get("title", "Source"),
-                    "url": r["href"]
-                })
+        for q in queries:
+            try:
+                results = ddgs.text(q, max_results=5)
+                for r in results:
+                    url = r.get("href")
+                    if url and url not in seen_urls:
+                        sources.append({
+                            "title": r.get("title", "Source"),
+                            "url": url
+                        })
+                        seen_urls.add(url)
+
+                    if len(sources) >= 10:
+                        return sources
+            except Exception:
+                continue
+
     return sources
+
 
 # =========================
 # ORCHESTRATOR (UNCHANGED OUTPUT)

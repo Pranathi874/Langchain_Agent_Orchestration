@@ -1,81 +1,71 @@
+#step 1 : imports
 import requests
 import os
-import numexpr
-from dotenv import load_dotenv
-
-from langchain_community.tools import tool, DuckDuckGoSearchRun
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain import hub
+from langchain_classic.agents import create_react_agent, AgentExecutor
+from langchain_classic import hub
 from langchain_google_genai import ChatGoogleGenerativeAI
-
-# =========================
-# LOAD ENV
-# =========================
+from dotenv import load_dotenv
+from langchain_community.tools import tool
+from langchain_community.tools import DuckDuckGoSearchRun
 load_dotenv()
 
-# =========================
-# LLM
-# =========================
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
-
-# Prompt
-prompt = hub.pull("hwchase17/react")
-
-# =========================
-# TOOLS
-# =========================
-
-# 1. Search tool
+# 1st tool (search tool)
 search_tool = DuckDuckGoSearchRun()
 
-# 2. Weather tool
+model = ChatGoogleGenerativeAI(model='gemini-2.5-flash')
+
+# 2nd tool(weather tool)
+
 @tool
-def get_weather_data(city: str) -> dict:
-    """Fetch current weather data."""
+def get_place_temperature(city: str) -> dict:
+    """Get the current weather of a given city."""
+    
     data = requests.get(
-        "http://api.weatherstack.com/current",
-        params={
-            "access_key": os.getenv("WEATHERSTACK_API_KEY"),
-            "query": city
-        },
+        "https://api.openweathermap.org/data/2.5/weather",
+        params={"appid": os.environ["OPENWEATHER_API_KEY"], "q": city , "units": "metric"},
         timeout=10
     ).json()
-
-    if "current" not in data:
+    
+    if data.get("cod") != 200:
         raise RuntimeError(data)
-
+    
     return {
-        "city": city,
-        "temperature": data["current"]["temperature"],
-        "condition": data["current"]["weather_descriptions"][0]
-    }
+        "city": data["name"],
+        "temp_c": data["main"]["temp"],
+        "condition": data["weather"][0]["description"]
+ }
 
-# 3. Calculator tool
 @tool
-def calculator(expression: str) -> float:
-    """Evaluate a math expression safely."""
-    return float(numexpr.evaluate(expression))
+def calculator(expression: str) -> str:
+    """Instant calculator via wolfram Alpha"""
+    url = "http://api.wolframalpha.com/v2/simple"  #correct for results
+    
+    params = {
+        "appid": os.environ["WOLFRAM_ALPHA_APPID"],
+        "i": expression   # "18 * 1.8 + 32"
+    }
+    
+    response = requests.get(url, params=params, timeout=5)
+    return response.text.strip() if response.ok else f"Error: {response.status_code}"
 
-# =========================
-# AGENT
-# =========================
-agent = create_react_agent(
-    llm=llm,
-    tools=[search_tool, get_weather_data, calculator],
+
+#step 2: pull the react prompt from langchain hub
+prompt = hub.pull("hwchase17/react") #pulls the standard react agent prompt
+#print(hub.pull("hwchase17/react"))
+
+#step 3: create the react agent manually with the pulled prompt
+agent = create_react_agent(llm=model,
+    tools=[search_tool, get_place_temperature],
     prompt=prompt
 )
 
+#step 4: Wrap the agent with an AgentExecutor
 agent_executor = AgentExecutor(
     agent=agent,
-    tools=[search_tool, get_weather_data, calculator],
+    tools=[search_tool, get_place_temperature],
     verbose=True
 )
 
-# =========================
-# RUN
-# =========================
-response = agent_executor.invoke({
-    "input": "find the capital of India, then find its current temperature and subtract 5 from it"
-})
-
+#step 5: invoke the agent executor with a query
+response = agent_executor.invoke({'input':"What is the capital of Tamil Nadu. Find it's current weather condition "})
 print(response)

@@ -17,6 +17,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from app import orchestrator
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import time
 import base64
 
@@ -29,23 +30,21 @@ load_dotenv()
 # PAGE CONFIG
 # =========================
 st.set_page_config(
-    page_title="Multi-Agent Research System",
+    page_title="AgentCollab",
     page_icon="logo.png",
     layout="wide"
 )
 
 # =========================
-# GLOBAL CSS (IMPORTANT)
+# GLOBAL CSS
 # =========================
 st.markdown("""
 <style>
 
-/* Global text */
 html, body, [class*="st-"] {
     color: #ffffff !important;
 }
 
-/* Background */
 .stApp {
     background:
         radial-gradient(circle at top left, rgba(114,9,183,0.35), transparent 45%),
@@ -53,12 +52,10 @@ html, body, [class*="st-"] {
         linear-gradient(135deg, #4D067B, #2b033f);
 }
 
-/* Labels */
 label {
     color: #e0d6ff !important;
 }
 
-/* TextArea */
 textarea {
     background: linear-gradient(135deg, #1a1b3a, #2b2d5c) !important;
     color: #ffffff !important;
@@ -74,44 +71,33 @@ textarea:focus {
     box-shadow: 0 0 14px rgba(0,221,255,0.8) !important;
 }
 
-/* Tabs */
 button[data-baseweb="tab"] {
     color: #ffffff !important;
 }
 
-/* Alerts */
 .stAlert {
     color: #ffffff !important;
 }
 
-
-/* Primary button */
 div.stButton > button {
     background: linear-gradient(135deg, #6a00ff, #3b0a77) !important;
     color: #ffffff !important;
-    border: none !important;
     border-radius: 14px !important;
     padding: 0.6em 1.4em !important;
     font-size: 16px !important;
     font-weight: 600 !important;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important;
     transition: all 0.25s ease-in-out !important;
-    
 }
 
-/* Hover effect */
 div.stButton > button:hover {
     background: linear-gradient(135deg, #8b2cff, #5a189a) !important;
     transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgba(0,0,0,0.45) !important;
 }
 
-/* Click (active) */
 div.stButton > button:active {
     transform: scale(0.98);
 }
-
-
 
 </style>
 """, unsafe_allow_html=True)
@@ -140,8 +126,8 @@ st.markdown(f"""
     <div style="display:flex; align-items:center; gap:16px;">
         <img src="data:image/png;base64,{top_logo_base64}" style="height:50px;" />
         <div>
-            <div style="font-size:16px;font-weight:700;color:#ffffff;">AGENT COLLAB</div>
-            <div style="font-size:12px;color:#e0d6ff;">ORCHESTRATOR</div>
+            <div style="font-size:16px;font-weight:700;">AGENTCOLLAB</div>
+            <div style="font-size:12px;color:#e0d6ff;">AI RESEARCH PLATFORM</div>
         </div>
     </div>
 </div>
@@ -155,17 +141,24 @@ with col2:
     st.markdown(f"""
     <div style="display:flex;justify-content:center;align-items:center;gap:14px;">
         <img src="data:image/png;base64,{title_logo_base64}" style="height:42px;" />
-        <h1 style="margin:0;color:#ffffff;font-weight:700;">
-            Multi-Agent Research System
-        </h1>
+        <h1 style="margin:0;font-weight:700;">Multi-Agent Research System</h1>
     </div>
     """, unsafe_allow_html=True)
 
-now = datetime.now()
+# =========================
+# LIVE DATE & TIME (IST)
+# =========================
+now = datetime.now(ZoneInfo("Asia/Kolkata"))
+
 st.markdown(
-    f"<p style='text-align:center;color:#cfcfff;'>🗒 {now.strftime('%A, %d %B %Y | %I:%M %p')}</p>",
+    f"<p style='text-align:center;color:#cfcfff;'>🗒 "
+    f"{now.strftime('%A, %d %B %Y | %I:%M %p')} IST</p>",
     unsafe_allow_html=True
 )
+
+# 🔁 auto refresh every 60 seconds
+time.sleep(60)
+st.rerun()
 
 st.markdown("---")
 
@@ -179,7 +172,7 @@ if not os.getenv("GROQ_API_KEY"):
 # =========================
 # INPUT SECTION
 # =========================
-st.markdown("<h3 style='color:#ffffff;'>🔎 Research Topic</h3>", unsafe_allow_html=True)
+st.markdown("<h3>🔎 Research Topic</h3>", unsafe_allow_html=True)
 st.caption("Fast • Intelligent • Multi-Agent Research Engine")
 
 topic = st.text_area(
@@ -260,6 +253,6 @@ if st.button("🚀 Start Research"):
 # FOOTER
 # =========================
 st.markdown(
-    "<hr><p style='text-align:center;color:#cfcfff;'>© 2026 Multi-Agent Research System</p>",
+    "<hr><p style='text-align:center;color:#cfcfff;'>© 2026 AgentCollab</p>",
     unsafe_allow_html=True
 )
